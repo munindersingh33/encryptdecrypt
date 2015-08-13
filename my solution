@@ -1,0 +1,184 @@
+/*
+It was one of the question that i had solved for preparing globussoft exam.
+
+Chip and Dale have devised an encryption method to hide their (written) text messages. They first agree secretly on two numbers that will be used as the number of rows (R) and columns (C) in a matrix. The sender encodes an intermediate format using the following rules: 
+1. The text is formed with uppercase letters [A-Z] and <space>. 
+2. Each text character will be represented by decimal values as follows: 
+<space> = 0, A = 1, B = 2, C = 3, ..., Y = 25, Z = 26
+The sender enters the 5 digit binary representation of the characters’ values in a spiral pattern along the matrix as shown below. The matrix is padded out with zeroes (0) to fill the matrix completely. For example, if the text to encode is: "ACM" and R=4 and C=4, the matrix would be filled in as follows: 
+A = 00001, C = 00011, M = 01101
+The bits in the matrix are then concatenated together in row major order and sent to the receiver. 
+The example above would be encoded as: 0000110100101100 
+
+Input
+The first line of input contains a single integer N, (1 ≤ N ≤ 1000) which is the number of datasets that follow. Each dataset consists of a single line of input containing R (1<=R<=20), a space, C (1<=C<=20), a space, and a string of binary digits that represents the contents of the matrix (R * C binary digits). The binary digits are in row major order. 
+
+Output
+(one extra 0)
+For each dataset, you should generate one line of output with the following values: The dataset number as a decimal integer (start counting at one), a space, and the decoded text message. You should throw away any trailing spaces and/or partial characters found while decoding. 
+
+Example
+Input:
+4
+4 4 0000110100101100
+5 2 0110000010
+2 6 010000001001
+5 5 0100001000011010110000010
+
+Output:
+1 ACM
+2 HI
+3 HI
+4 HI HO
+
+
+My solution:(Sucessfull) */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace encryptdecrypt
+{
+    class Test
+    {
+        int datasets;
+        int[] no_of_rows;
+        int[] no_of_cols;
+        string[] binarystring;
+
+        public void getdata()
+        {
+            try
+            {
+                datasets = int.Parse(Console.ReadLine());
+                ValueRange(datasets, 1, 1000);
+                no_of_rows = new int[datasets];
+                no_of_cols = new int[datasets];
+                binarystring = new string[datasets];
+                for (int i = 0; i < datasets; i++)
+                {
+                    string userinput = Console.ReadLine();
+                    string[] breakedinput = userinput.Split(' ');
+                    no_of_rows[i] = int.Parse(breakedinput[0]);
+                    ValueRange(no_of_rows[i], 1, 20);
+                    no_of_cols[i] = int.Parse(breakedinput[1]);
+                    ValueRange(no_of_cols[i], 1, 20);
+                    binarystring[i] = breakedinput[2].Substring(0, (no_of_rows[i] * no_of_cols[i]));
+                }
+            }
+            catch (Exception eobj)
+            {
+                Console.WriteLine(eobj);
+            }
+        }
+
+        private void ValueRange(int value, int lower, int upper)
+        {
+            if (value > upper)
+            {
+                datasets = upper;
+                Console.WriteLine("The upper value should be in the range:" + lower + "<=N<=" + upper + "\n Therefore, " + upper + " is taken as default");
+            }
+            if (datasets < lower)
+            {
+                datasets = lower;
+                Console.WriteLine("The upper value should be in the range:" + lower + "<=N<=" + upper + ", therefore, " + lower + " is taken as default");
+            }
+        }
+
+        public void decryption()
+        {
+            try
+            {
+                int count;
+                string temp;
+
+                for (int i = 0; i < datasets; i++)
+                {
+                    count = 0;
+                    temp = binarystring[i];
+
+                    byte[,] matrix = new byte[no_of_rows[i], no_of_cols[i]];
+                    for (int j = 0; j < no_of_rows[i]; j++)
+                    {
+
+                        for (int k = 0; k < no_of_cols[i]; k++)
+                        {
+                            matrix[j, k] = byte.Parse(temp[count++].ToString());
+
+                        }
+
+                    }
+
+                    int counter = 0;
+                    int x, y;
+                    int a = 0;
+                    int b = 1;
+                    int r = no_of_rows[i] - 1;
+                    int c = no_of_cols[i] - 1;
+                    int[] spiral = new int[no_of_rows[i] * no_of_cols[i]];
+                    do
+                    {
+                        for (x = a, y = a; y <= c; y++)
+                        {
+
+                            spiral[counter++] = matrix[x, y];
+                        }
+                        for (x = b, y = c; x <= r; x++)
+                        {
+                            spiral[counter++] = matrix[x, y];
+                        }
+                        for (x = r, y = c - 1; y >= a; y--)
+                        {
+                            spiral[counter++] = matrix[x, y];
+                        }
+                        for (x = r - 1, y = a; x >= b; x--)
+                        {
+                            spiral[counter++] = matrix[x, y];
+                        }
+                        a++; b++; c--; r--;
+                    } while (counter < no_of_rows[i] * no_of_cols[i]);
+                    Console.Write("\n" + (i + 1) + " ");
+                    int rem = (no_of_rows[i] * no_of_cols[i]) % 5;
+                    string Todisplay;
+                    int minus = 0;
+                    if (rem != 0)
+                    {
+                        minus = 5 - rem;
+                    }
+                    for (x = 0; x < ((no_of_rows[i] * no_of_cols[i]) - minus); x = x + 5)
+                    {
+                        Todisplay = "";
+                        for (y = x; y < x + 5; y++)
+                        {
+                            Todisplay += spiral[y];
+                        }
+                        if (Todisplay == "00000")
+                            Console.Write(" ");
+                        else
+                            Console.Write((char)(64 + (Convert.ToInt32(Todisplay, 2))));
+                    }
+                }
+            }
+            catch (Exception eobj)
+            {
+                Console.WriteLine(eobj);
+            }
+        }
+
+
+
+        static void Main(string[] args)
+        {
+            Test obj = new Test();
+            Console.WriteLine("Input:");
+            obj.getdata();
+            Console.WriteLine("Output:");
+            obj.decryption();
+            Console.ReadLine();
+        }
+    }
+}
